@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>夜间居住场所火灾 · 时钟动态数据图</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: transparent !important; overflow: hidden; }
+  body { font-family: "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; }
+  #stage { position: relative; width: 100%; height: 100%; display: grid; place-items: center; background: transparent !important; cursor: pointer; touch-action: pan-y; outline: none; }
+  svg { width: 100%; height: 100%; display: block; background: transparent !important; overflow: visible; }
+  #stage:focus-visible svg { outline: 1px dotted #eacb96; outline-offset: -8px; }
+  .dial-number { font-family: Georgia, 'Times New Roman', serif; fill: #f3f1ed; font-size: 49px; text-anchor: middle; dominant-baseline: central; paint-order: stroke; stroke: rgba(14,29,48,.42); stroke-width: .8px; }
+  .tick { stroke: #b8cfdf; stroke-linecap: round; opacity: .70; }
+  .tick.major { stroke: #e4ecf0; opacity: .9; }
+  .dial-note { font-size: 31px; font-weight: 600; fill: #f1dfc1; letter-spacing: 1.5px; text-anchor: middle; }
+  .label { font-size: 37px; font-weight: 600; fill: #e7eef0; letter-spacing: 1px; }
+  .value { font-size: 77px; font-weight: 700; fill: #f1c790; letter-spacing: -.8px; font-variant-numeric: tabular-nums; }
+  .connector { fill: none; stroke: #e6c992; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; opacity: 0; stroke-dasharray: 250; stroke-dashoffset: 250; transition: stroke-dashoffset .7s ease, opacity .25s ease; }
+  .connector.on { opacity: .87; stroke-dashoffset: 0; }
+  .metric { opacity: 0; transform: translateY(14px); transition: opacity .55s ease, transform .55s cubic-bezier(.2,.8,.2,1); }
+  .metric.on { opacity: 1; transform: translateY(0); }
+  .metric-outline { fill: none; stroke: #bbcad4; stroke-opacity: .65; stroke-width: 2.3; }
+  .metric-accent { fill: none; stroke: #e2ba85; stroke-opacity: .75; stroke-width: 2.3; }
+  .bar-rail { fill: none; stroke: #a9bcc9; stroke-opacity: .48; stroke-width: 12; stroke-linecap: round; }
+  .bar-value { fill: none; stroke: #f0c38c; stroke-width: 12; stroke-linecap: round; }
+  #nightWedge { opacity: .9; }
+  .hour-needle { filter: url(#needleLight); }
+  .sleep-icon { fill:none; stroke:#ead8be; stroke-width:7; stroke-linecap:round; stroke-linejoin:round; }
+  .replay-dot { fill: #f6d7a2; opacity:.8; }
+  @media (prefers-reduced-motion: reduce) {
+    .connector, .metric { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="stage" role="button" tabindex="0" aria-label="触碰后播放夜间火灾时钟动画：20时到次日6时，火灾占28.6%，死亡人数占55.4%">
+<svg id="viz" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+ <defs>
+  <radialGradient id="dialGrad" cx="37%" cy="32%" r="80%"><stop offset="0" stop-color="#2f465a"/><stop offset=".57" stop-color="#182e45"/><stop offset="1" stop-color="#0b192a"/></radialGradient>
+  <linearGradient id="rimGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#83a1b8"/><stop offset=".35" stop-color="#375a76"/><stop offset=".73" stop-color="#1e3d58"/><stop offset="1" stop-color="#7c9bb0"/></linearGradient>
+  <radialGradient id="nightGrad" cx="30%" cy="48%" r="78%"><stop offset="0" stop-color="#ffe1a0" stop-opacity=".72"/><stop offset=".65" stop-color="#f5d092" stop-opacity=".53"/><stop offset="1" stop-color="#f4dda7" stop-opacity=".30"/></radialGradient>
+  <linearGradient id="faceShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a4c0d2" stop-opacity=".22"/><stop offset=".55" stop-color="#698ca6" stop-opacity=".05"/><stop offset="1" stop-color="#132940" stop-opacity=".12"/></linearGradient>
+  <linearGradient id="outlineGrad" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#a7bdcd"/><stop offset=".52" stop-color="#d4dcdf"/><stop offset="1" stop-color="#d8b58c"/></linearGradient>
+  <filter id="softRim" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="9"/></filter>
+  <filter id="needleLight" x="-35%" y="-35%" width="170%" height="170%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ </defs>
+ <!-- The clock and its illuminated night arc; all beyond the artwork is alpha transparent. -->
+ <g id="clock">
+  <circle cx="401" cy="455" r="330" fill="#7293a9" opacity=".12" filter="url(#softRim)"/>
+  <circle cx="401" cy="455" r="316" fill="url(#rimGrad)" stroke="#b7cfdd" stroke-opacity=".58" stroke-width="3"/>
+  <circle cx="401" cy="455" r="300" fill="#14283d" stroke="#071a2b" stroke-width="13"/>
+  <circle cx="401" cy="455" r="280" fill="url(#dialGrad)" stroke="#718fa5" stroke-width="2.6"/>
+  <path id="nightWedge" d="" fill="url(#nightGrad)"/>
+  <circle cx="401" cy="455" r="280" fill="url(#faceShade)" opacity=".42"/>
+  <path id="arcBlue" d="" fill="none" stroke="#91b2c9" stroke-width="16" stroke-linecap="round" opacity=".68"/>
+  <path id="arcGold" d="" fill="none" stroke="#f3d29a" stroke-width="16" stroke-linecap="round" opacity=".96" filter="url(#needleLight)"/>
+  <g id="ticks"></g>
+  <g id="numbers"></g>
+  <g class="sleep-icon" transform="translate(327 315)">
+    <path d="M-55 22V-6 M-55 8H53V31 M-55 15H55"/>
+    <circle cx="-34" cy="-18" r="11" fill="#ead8be" stroke="none"/>
+    <path d="M-14 -5H36Q49 -5 49 9V15H-15Z" fill="#ead8be" fill-opacity=".16"/>
+    <path d="M63 -28l11 -10h-9l12 -12" stroke-width="4.5"/>
+    <path d="M84 -14l9 -9h-9l10 -11" stroke-width="3" opacity=".8"/>
+  </g>
+  <text x="401" y="587" class="dial-note">20:00—06:00</text>
+  <g id="needle" transform="rotate(240 401 455)">
+    <line x1="401" y1="459" x2="401" y2="249" stroke="#f3d8ae" stroke-opacity=".32" stroke-width="17" stroke-linecap="round"/>
+    <line class="hour-needle" x1="401" y1="451" x2="401" y2="250" stroke="#f8deb8" stroke-width="9" stroke-linecap="round"/>
+  </g>
+  <circle cx="401" cy="455" r="21" fill="#d3dce0" stroke="#96b2c6" stroke-width="5"/>
+  <circle cx="401" cy="455" r="12" fill="#567891" stroke="#eacb9d" stroke-width="2.8"/>
+ </g>
+ <g id="right">
+   <!-- Connectors only animate after the clock finishes. -->
+   <path class="connector" id="leader1" d="M 714 392 Q 752 377 787 363 L 830 363"/>
+   <path class="connector" id="leader2" d="M 711 573 Q 750 594 787 602 L 830 602"/>
+   <g class="metric" id="metric1">
+     <circle class="replay-dot" cx="829" cy="363" r="5.6"/>
+     <rect x="834" y="298" width="700" height="188" rx="32" class="metric-outline"/>
+     <!-- fine accent, no panel background -->
+     <path d="M 866 300H 1060" class="metric-accent"/>
+     <!-- flame pictogram -->
+     <g transform="translate(893 338)" fill="none" stroke="#e4bc88" stroke-linejoin="round" stroke-width="3">
+        <path d="M44 3Q71 27 68 51Q65 81 42 89Q17 82 15 57Q13 36 30 20Q29 45 42 45Q52 34 44 3Z" fill="#dab38b" fill-opacity=".16"/>
+        <path d="M44 47Q56 62 49 78Q40 86 34 77Q27 68 39 53" fill="#e7c38f" stroke="none"/>
+     </g>
+     <line x1="981" y1="338" x2="981" y2="445" stroke="#b5c9d5" stroke-opacity=".72" stroke-width="2.5"/>
+     <text x="1008" y="387" class="label">火灾起数占比</text>
+     <text x="1487" y="389" text-anchor="end" class="value" id="number1">28.6%</text>
+     <line class="bar-rail" x1="1016" y1="443" x2="1492" y2="443"/>
+     <line class="bar-value" id="bar1" x1="1016" y1="443" x2="1016" y2="443"/>
+   </g>
+   <g class="metric" id="metric2">
+     <circle class="replay-dot" cx="829" cy="602" r="5.6"/>
+     <rect x="834" y="537" width="700" height="188" rx="32" class="metric-outline"/>
+     <path d="M 866 539H 1060" class="metric-accent"/>
+     <!-- minimalist memorial pictogram -->
+     <g transform="translate(884 558)" stroke="#bdcddd" stroke-width="3.5" fill="none">
+       <path d="M 4 87V 41A33 33 0 0 1 70 41V 87Z" fill="#9fbdce" fill-opacity=".12"/>
+       <path d="M 24 40H 50M 37 27V 65" stroke="#d2dce3" stroke-width="6"/>
+       <path d="M -1 87H 75V 97H -1Z" fill="#c1d1dc" fill-opacity=".22"/>
+     </g>
+     <line x1="981" y1="577" x2="981" y2="682" stroke="#b5c9d5" stroke-opacity=".72" stroke-width="2.5"/>
+     <text x="1008" y="625" class="label">死亡人数占比</text>
+     <text x="1487" y="627" text-anchor="end" class="value" id="number2">55.4%</text>
+     <line class="bar-rail" x1="1016" y1="682" x2="1492" y2="682"/>
+     <line class="bar-value" id="bar2" x1="1016" y1="682" x2="1016" y2="682"/>
+   </g>
+ </g>
+</svg>
+</div>
+<script>
+(() => {
+ "use strict";
+ const svgNS = "http://www.w3.org/2000/svg";
+ const stage = document.getElementById("stage");
+ const cx = 401, cy = 455;
+ const startHourAngle = 240;  // 20:00 at the '8' on a 12-hour dial
+ const nightDurationAngle = 300; // clockwise: 8→9→10→11→12→1→...→6 = 10 hours
+ const runMs = 6000;
+ const nightWedge = document.getElementById("nightWedge");
+ const arcGold = document.getElementById("arcGold");
+ const arcBlue = document.getElementById("arcBlue");
+ const needle = document.getElementById("needle");
+ const metrics = [document.getElementById("metric1"), document.getElementById("metric2")];
+ const leaders = [document.getElementById("leader1"), document.getElementById("leader2")];
+ const numbers = [document.getElementById("number1"), document.getElementById("number2")];
+ const bars = [document.getElementById("bar1"), document.getElementById("bar2")];
+ const values = [28.6, 55.4];
+ let frameId = null, timers = [], status = 'idle', clockStart = null;
+ let counterFrames = [];
+ function point(r,angle) {
+    const rad=angle*Math.PI/180;
+    return [cx+r*Math.sin(rad),cy-r*Math.cos(rad)];
+ }
+ function arcPath(r,a,b) {
+    if (b<=a+.001) return '';
+    const p=point(r,a), q=point(r,b), large=b-a>180?1:0;
+    return `M${p[0].toFixed(2)},${p[1].toFixed(2)} A${r},${r} 0 ${large} 1 ${q[0].toFixed(2)},${q[1].toFixed(2)}`;
+ }
+ function sectorPath(r,a,b) {
+    if (b<=a+.001) return '';
+    const p=point(r,a),q=point(r,b),large=b-a>180?1:0;
+    return `M${cx},${cy} L${p[0].toFixed(2)},${p[1].toFixed(2)} A${r},${r} 0 ${large} 1 ${q[0].toFixed(2)},${q[1].toFixed(2)} Z`;
+ }
+ function el(tag,attributes,text) {
+    const n=document.createElementNS(svgNS,tag);
+    for(const [k,v] of Object.entries(attributes)) n.setAttribute(k,v);
+    if(text!==undefined)n.textContent=text;
+    return n;
+ }
+ // 60 finely calibrated clock ticks and 12 numeral positions.
+ const ticks = document.getElementById('ticks');
+ for(let i=0;i<60;i++){
+    const main=i%5===0, a=i*6, p=point(main?262:270,a),q=point(281,a);
+    ticks.appendChild(el('line', {x1:p[0],y1:p[1],x2:q[0],y2:q[1],class:`tick${main?' major':''}`, 'stroke-width':main?4.0:1.8}));
+ }
+ const numberGroup = document.getElementById('numbers');
+ for(let h=1;h<=12;h++){
+    const p=point(223,h*30);
+    numberGroup.appendChild(el('text',{x:p[0],y:p[1],class:'dial-number'},String(h)));
+ }
+ arcBlue.setAttribute('d',arcPath(291,startHourAngle,startHourAngle+nightDurationAngle));
+ // small endpoints on the time arc, neither is a specific alarm time.
+ for(const ang of [startHourAngle,startHourAngle+nightDurationAngle]){
+    const p=point(291,ang);
+    ticks.appendChild(el('circle',{cx:p[0],cy:p[1],r:7,fill:'#c6d9df',opacity:'.78'}));
+ }
+ function setClock(f) {
+    const a = startHourAngle+nightDurationAngle*f;
+    arcGold.setAttribute('d',arcPath(291,startHourAngle,a));
+    nightWedge.setAttribute('d',sectorPath(278,startHourAngle,a));
+    needle.setAttribute('transform',`rotate(${a} ${cx} ${cy})`);
+ }
+ function clearAll(){
+    cancelAnimationFrame(frameId); frameId=null;
+    counterFrames.forEach(id=>cancelAnimationFrame(id)); counterFrames=[];
+    timers.forEach(t=>clearTimeout(t)); timers=[];
+    leaders.forEach(p=>p.classList.remove('on'));
+    metrics.forEach(p=>p.classList.remove('on'));
+    numbers.forEach((n,i)=>n.textContent=values[i].toFixed(1)+'%');
+    bars.forEach(b=>b.setAttribute('x2','1016'));
+    setClock(0);
+    clockStart=null;
+ }
+ function animateNumber(i){
+    let ts=null;
+    const time=920;
+    const go=(now)=>{
+      if(ts===null)ts=now;
+      let q=Math.min(1,(now-ts)/time);
+      const eased=1-Math.pow(1-q,3);
+      numbers[i].textContent=(values[i]*eased).toFixed(1)+'%';
+      bars[i].setAttribute('x2', String(1016 + 476*(values[i]/100)*eased));
+      if(q<1) counterFrames[i]=requestAnimationFrame(go);
+    };
+    counterFrames[i]=requestAnimationFrame(go);
+ }
+ function schedule(fn,ms){timers.push(setTimeout(fn,ms));}
+ function finish(){
+    status='done';
+    schedule(()=>leaders[0].classList.add('on'),160);
+    schedule(()=>{metrics[0].classList.add('on');animateNumber(0)},500);
+    schedule(()=>leaders[1].classList.add('on'),800);
+    schedule(()=>{metrics[1].classList.add('on');animateNumber(1)},1170);
+ }
+ function run(){
+    if(status==='running')return;
+    clearAll();status='running';
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      setClock(1);finish();return;
+    }
+    const tick=(now)=>{
+      if(clockStart===null)clockStart=now;
+      const fraction=Math.min(1,(now-clockStart)/runMs);
+      setClock(fraction);
+      if(fraction<1)frameId=requestAnimationFrame(tick); else finish();
+    };
+    frameId=requestAnimationFrame(tick);
+ }
+ stage.addEventListener('pointerenter',run);
+ stage.addEventListener('pointerdown',(e)=>{if(e.pointerType==='touch' || status==='done')run()});
+ stage.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();run();}
+ });
+ // An optional callable helper for browser-based checks.
+ window.__clockViz={run,reset:()=>{clearAll();status='idle'},setProgress:setClock};
+ clearAll();
+})();
+</script>
+</body>
+</html>
